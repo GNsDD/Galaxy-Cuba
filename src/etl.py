@@ -50,17 +50,21 @@ def run_etl():
                 errors='coerce'
             ).dt.strftime('%Y-%m-%d')
 
-    # TRANSFORMACIÓN: Estandarización estricta de textos
-    # Limpiar espacios en blanco residuales de forma global
+    # TRANSFORMACIÓN: Limpieza de espacios residuales
     for col in df.columns:
         df[col] = df[col].astype(str).str.strip()
             
-    # Estandarizar estrictamente la columna linea_negocio a mayúsculas puras
+    # ESTANDARIZACIÓN ESTRICTA DE LÍNEA DE NEGOCIO (ICON, PRINT, TECH, EDU)
     if 'linea_negocio' in df.columns:
-        df['linea_negocio'] = df['linea_negocio'].str.upper()
-        # Homologar de raíz las abreviaturas y variantes del dataset original
-        df['linea_negocio'] = df['linea_negocio'].str.replace('EDUCACIÓN', 'EDU', regex=False)
-        df['linea_negocio'] = df['linea_negocio'].str.replace('TECNOLOGÍA', 'TECH', regex=False)
+        df['linea_negocio'] = df['linea_negocio'].astype(str).str.upper().str.strip()
+        
+        # Homologar todas las variantes sucias a las 4 oficiales del diccionario
+        df['linea_negocio'] = df['linea_negocio'].str.replace('.*EDUCACI.*', 'EDU', regex=True)
+        df['linea_negocio'] = df['linea_negocio'].str.replace('.*IMPRESION.*', 'PRINT', regex=True)
+        df['linea_negocio'] = df['linea_negocio'].str.replace('.*IMPRESIÓ.*', 'PRINT', regex=True)
+        df['linea_negocio'] = df['linea_negocio'].str.replace('.*COLECCIONABLE.*', 'ICON', regex=True)
+        # Agrupar variantes industriales en la categoría corporativa oficial 'TECH'
+        df['linea_negocio'] = df['linea_negocio'].str.replace('.*INDU.*', 'TECH', regex=True)
 
     # LIMPIEZA DE MONTOS: Quitar 'S/', espacios y convertir comas decimales a puntos
     if 'monto' in df.columns:
