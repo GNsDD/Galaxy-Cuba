@@ -51,6 +51,12 @@ def run_etl():
                 errors='coerce'
             ).dt.strftime('%Y-%m-%d')
 
+    # ESTANDARIZACIÓN DE LÍNEA DE NEGOCIO
+    if 'linea_negocio' in df.columns:
+        df['linea_negocio'] = df['linea_negocio'].astype(str).str.upper().str.strip()
+        # Homologar variantes del texto si existen abreviaturas
+        df['linea_negocio'] = df['linea_negocio'].str.replace('EDUCACIÓN', 'EDU', regex=False)
+
     # LIMPIEZA DE MONTOS: Quitar 'S/', espacios y convertir comas decimales a puntos
     if 'monto' in df.columns:
         df['monto'] = df['monto'].astype(str).str.replace('S/', '', regex=False)
