@@ -43,7 +43,6 @@ def run_etl():
                         break
             
             # Aplicar la conversión a toda la columna con la lógica detectada
-            # format='mixed' da flexibilidad y dayfirst asegura que no se crucen días y meses
             df[col] = pd.to_datetime(
                 df[col], 
                 dayfirst=es_dia_primero, 
@@ -51,11 +50,17 @@ def run_etl():
                 errors='coerce'
             ).dt.strftime('%Y-%m-%d')
 
-    # ESTANDARIZACIÓN DE LÍNEA DE NEGOCIO
+    # TRANSFORMACIÓN: Estandarización estricta de textos
+    # Limpiar espacios en blanco residuales de forma global
+    for col in df.columns:
+        df[col] = df[col].astype(str).str.strip()
+            
+    # Estandarizar estrictamente la columna linea_negocio a mayúsculas puras
     if 'linea_negocio' in df.columns:
-        df['linea_negocio'] = df['linea_negocio'].astype(str).str.upper().str.strip()
-        # Homologar variantes del texto si existen abreviaturas
+        df['linea_negocio'] = df['linea_negocio'].str.upper()
+        # Homologar de raíz las abreviaturas y variantes del dataset original
         df['linea_negocio'] = df['linea_negocio'].str.replace('EDUCACIÓN', 'EDU', regex=False)
+        df['linea_negocio'] = df['linea_negocio'].str.replace('TECNOLOGÍA', 'TECH', regex=False)
 
     # LIMPIEZA DE MONTOS: Quitar 'S/', espacios y convertir comas decimales a puntos
     if 'monto' in df.columns:
